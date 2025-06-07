@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { supabase } from "./supabaseClient";
+import "./Register.css";
 
 const Register = ({ onRegistered, metamaskAddress }) => {
   const [email, setEmail] = useState("");
@@ -7,6 +8,7 @@ const Register = ({ onRegistered, metamaskAddress }) => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -35,47 +37,108 @@ const Register = ({ onRegistered, metamaskAddress }) => {
   };
 
   return (
-    <div className="auth-container">
-      <h2>Create Account 🚀</h2>
-      <form onSubmit={handleRegister} className="auth-form">
-        <div className="form-group">
-          <input
-            className="input"
-            placeholder="Email"
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-          />
+    <div className="register-container">
+      <div className="register-card">
+        <div className="register-header">
+          <h2>Create Account</h2>
+          <p className="register-subtitle">
+            Join ChainLock to secure your passwords
+          </p>
         </div>
-        <div className="form-group">
-          <input
-            className="input"
-            placeholder="Choose a username"
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <input
-            className="input"
-            placeholder="Password"
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button 
-          type="submit" 
-          className="action-btn"
-          disabled={loading}
-        >
-          {loading ? "Creating account..." : "Register"}
-        </button>
-        {msg && <div className={`message ${msg.includes("successful") ? "success" : "error"}`}>{msg}</div>}
-      </form>
+
+        <form onSubmit={handleRegister} className="register-form">
+          <div className="input-group">
+            <label htmlFor="email">Email</label>
+            <div className="input-wrapper">
+              <span className="input-icon">📧</span>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="your@email.com"
+              />
+            </div>
+          </div>
+
+          <div className="input-group">
+            <label htmlFor="username">Username</label>
+            <div className="input-wrapper">
+              <span className="input-icon">👤</span>
+              <input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                placeholder="Choose a username"
+              />
+            </div>
+          </div>
+
+          <div className="input-group">
+            <label htmlFor="password">Password</label>
+            <div className="input-wrapper">
+              <span className="input-icon">🔒</span>
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="Create a strong password"
+              />
+              <button
+                type="button"
+                className="toggle-password"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? "👁️" : "👁️‍🗨️"}
+              </button>
+            </div>
+          </div>
+
+          <div className="metamask-status">
+            <span className="icon">🦊</span>
+            <span
+              className={`status ${
+                metamaskAddress ? "connected" : ""
+              }`}
+            >
+              {metamaskAddress
+                ? "MetaMask Connected"
+                : "Please connect MetaMask"}
+            </span>
+          </div>
+
+          <button
+            type="submit"
+            className="register-button"
+            disabled={loading}
+          >
+            {loading ? (
+              <div className="loading-spinner">
+                <div className="spinner"></div>
+                <span>Creating Account...</span>
+              </div>
+            ) : (
+              "Create Account"
+            )}
+          </button>
+
+          {msg && (
+            <div
+              className={`message ${
+                msg.includes("successful") ? "success" : "error"
+              }`}
+            >
+              {msg.includes("successful") ? "✅ " : "❌ "}
+              {msg}
+            </div>
+          )}
+        </form>
+      </div>
     </div>
   );
 };

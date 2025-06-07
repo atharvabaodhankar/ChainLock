@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { supabase } from "./supabaseClient";
-
+import "./Login.css";
 
 const Login = ({ onLogin, metamaskAddress }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState(""); // For first-time profile creation
+  const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -73,49 +74,98 @@ const Login = ({ onLogin, metamaskAddress }) => {
   };
 
   return (
-    <div className="auth-container">
-      <h2>Welcome Back! 👋</h2>
-      <form onSubmit={handleLogin} className="auth-form">
-        <div className="form-group">
-          <input
-            className="input"
-            placeholder="Email"
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-          />
+    <div className="login-container">
+      <div className="login-card">
+        <div className="login-header">
+          <h2>Welcome Back</h2>
+          <p className="login-subtitle">Enter your credentials to access your vault</p>
         </div>
-        <div className="form-group">
-          <input
-            className="input"
-            placeholder="Password"
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        {msg.includes("First login detected") && (
-          <div className="form-group">
-            <input
-              className="input"
-              placeholder="Choose a username"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              required
-            />
+
+        <form onSubmit={handleLogin} className="login-form">
+          <div className="input-group">
+            <label htmlFor="email">Email</label>
+            <div className="input-wrapper">
+              <span className="input-icon">📧</span>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                placeholder="your@email.com"
+              />
+            </div>
           </div>
-        )}
-        <button 
-          type="submit" 
-          className="action-btn" 
-          disabled={loading}
-        >
-          {loading ? "Logging in..." : "Login"}
-        </button>
-        {msg && <div className={`message ${msg.includes("successful") ? "success" : "error"}`}>{msg}</div>}
-      </form>
+
+          <div className="input-group">
+            <label htmlFor="password">Password</label>
+            <div className="input-wrapper">
+              <span className="input-icon">🔒</span>
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                placeholder="Enter your password"
+              />
+              <button
+                type="button"
+                className="toggle-password"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? "👁️" : "👁️‍🗨️"}
+              </button>
+            </div>
+          </div>
+
+          {msg.includes("First login detected") && (
+            <div className="input-group">
+              <label htmlFor="username">Username</label>
+              <div className="input-wrapper">
+                <span className="input-icon">👤</span>
+                <input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                  required
+                  placeholder="Choose a username"
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="metamask-status">
+            <span className="icon">🦊</span>
+            <span className={`status ${metamaskAddress ? 'connected' : ''}`}>
+              {metamaskAddress ? 'MetaMask Connected' : 'Please connect MetaMask'}
+            </span>
+          </div>
+
+          <button 
+            type="submit" 
+            className="login-button"
+            disabled={loading}
+          >
+            {loading ? (
+              <div className="loading-spinner">
+                <div className="spinner"></div>
+                <span>Logging in...</span>
+              </div>
+            ) : (
+              'Login'
+            )}
+          </button>
+
+          {msg && (
+            <div className={`message ${msg.includes("successful") ? "success" : "error"}`}>
+              {msg.includes("successful") ? "✅ " : "❌ "}
+              {msg}
+            </div>
+          )}
+        </form>
+      </div>
     </div>
   );
 };
