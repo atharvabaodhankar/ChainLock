@@ -104,9 +104,8 @@ function App() {
 
     setLoading(true);
     try {
-      const tx = await contract.addPassword(platform, password, {
-        gasLimit: 1000000,
-      });
+    
+      const tx = await contract.addPassword(platform, password);
       await tx.wait();
       alert("Password added successfully ✅");
       setPlatform("");
