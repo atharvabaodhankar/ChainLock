@@ -23,21 +23,8 @@ const Register = ({ onRegistered, metamaskAddress }) => {
       setMsg("Registration failed: " + error.message);
       return;
     }
-    // Insert profile info
-    const { error: profileError } = await supabase.from("profiles").insert([
-      {
-        id: data.user.id,
-        email,
-        username,
-        metamask_address: metamaskAddress,
-      },
-    ]);
-    if (profileError) {
-      setMsg("Profile creation failed: " + profileError.message);
-      return;
-    }
     setMsg("Registration successful! Please check your email to confirm.");
-    onRegistered();
+    onRegistered({ email, username, metamaskAddress });
   };
 
   return (
