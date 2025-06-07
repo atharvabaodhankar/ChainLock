@@ -4,21 +4,23 @@ import { getVaultContract } from "./contract";
 import Register from "./Register";
 import Login from "./Login";
 import "./App.css";
-import { 
-  NetworkStatus, 
-  isPolygonAmoyNetwork, 
-  switchToPolygonAmoy, 
-  POLYGON_AMOY_NETWORK 
+import {
+  NetworkStatus,
+  isPolygonAmoyNetwork,
+  switchToPolygonAmoy,
+  POLYGON_AMOY_NETWORK,
 } from "./networkUtils";
 
 // Helper function to detect if we're in MetaMask browser
 const isMetaMaskBrowser = () => {
-  return window.ethereum?.isMetaMask && navigator.userAgent.includes('Mobile');
+  return window.ethereum?.isMetaMask && navigator.userAgent.includes("Mobile");
 };
 
 // Helper function to detect if we're on mobile
 const isMobile = () => {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
 };
 
 // Helper function to get MetaMask deep link
@@ -42,7 +44,9 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [visiblePasswords, setVisiblePasswords] = useState(new Set());
-  const [networkStatus, setNetworkStatus] = useState(NetworkStatus.NOT_CONNECTED);
+  const [networkStatus, setNetworkStatus] = useState(
+    NetworkStatus.NOT_CONNECTED
+  );
   const [showMetaMaskPrompt, setShowMetaMaskPrompt] = useState(false);
 
   const connectWallet = async () => {
@@ -80,24 +84,29 @@ function App() {
 
   const checkAndUpdateNetwork = async () => {
     if (!window.ethereum) return;
-    
+
     const isCorrectNetwork = await isPolygonAmoyNetwork();
-    setNetworkStatus(isCorrectNetwork ? NetworkStatus.CONNECTED : NetworkStatus.WRONG_NETWORK);
+    setNetworkStatus(
+      isCorrectNetwork ? NetworkStatus.CONNECTED : NetworkStatus.WRONG_NETWORK
+    );
   };
 
   // Add password function with network check
   const addPassword = async () => {
-    if (!platform || !password) return alert("Both platform and password are required!");
-    
+    if (!platform || !password)
+      return alert("Both platform and password are required!");
+
     const isCorrectNetwork = await isPolygonAmoyNetwork();
     if (!isCorrectNetwork) {
       alert("Please switch to Polygon Amoy network to add passwords");
       return;
     }
-    
+
     setLoading(true);
     try {
-      const tx = await contract.addPassword(platform, password, { gasLimit: 1000000 });
+      const tx = await contract.addPassword(platform, password, {
+        gasLimit: 1000000,
+      });
       await tx.wait();
       alert("Password added successfully ✅");
       setPlatform("");
@@ -130,7 +139,7 @@ function App() {
   };
 
   const togglePasswordVisibility = (index) => {
-    setVisiblePasswords(prev => {
+    setVisiblePasswords((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(index)) {
         newSet.delete(index);
@@ -145,12 +154,20 @@ function App() {
     connectWallet();
 
     if (window.ethereum) {
-      const handleAccountsChanged = (accounts) => {
-        if (user && accounts[0]?.toLowerCase() !== user.metamask_address?.toLowerCase()) {
+      const handleAccountsChanged = async (accounts) => {
+        if (
+          user &&
+          accounts[0]?.toLowerCase() !== user.metamask_address?.toLowerCase()
+        ) {
           setUser(null);
           setAuthState("login");
         }
         setAccount(accounts[0]);
+        // Reconnect contract to the new signer
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const vault = getVaultContract(signer);
+        setContract(vault);
       };
 
       const handleChainChanged = () => {
@@ -162,7 +179,10 @@ function App() {
       window.ethereum.on("chainChanged", handleChainChanged);
 
       return () => {
-        window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
+        window.ethereum.removeListener(
+          "accountsChanged",
+          handleAccountsChanged
+        );
         window.ethereum.removeListener("chainChanged", handleChainChanged);
       };
     }
@@ -188,15 +208,15 @@ function App() {
       <div className="container metamask-prompt">
         <div className="metamask-prompt-card">
           <h2>Open in MetaMask</h2>
-          <p>For the best experience, please open this app in the MetaMask browser.</p>
+          <p>
+            For the best experience, please open this app in the MetaMask
+            browser.
+          </p>
           <div className="metamask-prompt-actions">
-            <a 
-              href={getMetaMaskDeepLink()}
-              className="open-metamask-btn"
-            >
+            <a href={getMetaMaskDeepLink()} className="open-metamask-btn">
               Open in MetaMask
             </a>
-            <button 
+            <button
               className="continue-anyway-btn"
               onClick={() => setShowMetaMaskPrompt(false)}
             >
@@ -213,14 +233,18 @@ function App() {
       <div className="container">
         <h1>🔐 ChainLock</h1>
         <p>Secure password storage on the blockchain</p>
-        <button className="connect-btn" onClick={connectWallet} disabled={loading}>
+        <button
+          className="connect-btn"
+          onClick={connectWallet}
+          disabled={loading}
+        >
           {loading ? (
             <div className="loading-spinner">
               <div className="spinner"></div>
               <span>Connecting...</span>
             </div>
           ) : (
-            'Connect MetaMask'
+            "Connect MetaMask"
           )}
         </button>
       </div>
@@ -238,12 +262,12 @@ function App() {
             <p>Chain ID: {POLYGON_AMOY_NETWORK.chainId}</p>
             <p>RPC URL: {POLYGON_AMOY_NETWORK.rpcUrls[0]}</p>
           </div>
-          <button 
-            className="action-btn" 
+          <button
+            className="action-btn"
             onClick={switchToPolygonAmoy}
             disabled={loading}
           >
-            {loading ? 'Switching Network...' : 'Switch Network'}
+            {loading ? "Switching Network..." : "Switch Network"}
           </button>
         </div>
       </div>
@@ -270,9 +294,13 @@ function App() {
         onLogin={async (profile) => {
           setUser(profile);
           setAuthState("dashboard");
-          // Fetch passwords after successful login
+
           try {
-            const data = await contract.getPasswords();
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner(); // get correct signer again
+            const vault = getVaultContract(signer); // create new contract instance
+            setContract(vault); // update contract in state
+            const data = await vault.getPasswords(); // fetch with the updated contract
             setVaultData(data);
           } catch (err) {
             console.error("Failed to fetch initial passwords:", err);
@@ -291,15 +319,21 @@ function App() {
         <h1>🔐 Password Vault</h1>
         <div className="user-info">
           <p>Welcome, {user?.username}!</p>
-          <small>Connected: {account.slice(0, 6)}...{account.slice(-4)}</small>
+          <small>
+            Connected: {account.slice(0, 6)}...{account.slice(-4)}
+          </small>
           <div className="network-status">
             {networkStatus === NetworkStatus.CONNECTED ? (
-              <span className="network-badge connected">Connected to Polygon Amoy</span>
+              <span className="network-badge connected">
+                Connected to Polygon Amoy
+              </span>
             ) : (
               <div className="network-warning">
-                <span className="network-badge wrong-network">Wrong Network</span>
-                <button 
-                  className="switch-network-btn" 
+                <span className="network-badge wrong-network">
+                  Wrong Network
+                </span>
+                <button
+                  className="switch-network-btn"
                   onClick={switchToPolygonAmoy}
                   disabled={loading}
                 >
@@ -326,9 +360,9 @@ function App() {
           onChange={(e) => setPassword(e.target.value)}
           className="input"
         />
-        <button 
-          onClick={addPassword} 
-          disabled={loading || networkStatus !== NetworkStatus.CONNECTED} 
+        <button
+          onClick={addPassword}
+          disabled={loading || networkStatus !== NetworkStatus.CONNECTED}
           className="action-btn"
         >
           {loading ? "Adding..." : "Add Password"}
@@ -338,8 +372,8 @@ function App() {
       <div className="vault-section">
         <div className="vault-header">
           <h2>Your Passwords</h2>
-          <button 
-            onClick={fetchPasswords} 
+          <button
+            onClick={fetchPasswords}
             disabled={loading || networkStatus !== NetworkStatus.CONNECTED}
             className="refresh-btn"
           >
@@ -349,8 +383,8 @@ function App() {
 
         {vaultData.length === 0 ? (
           <p className="empty-state">
-            {networkStatus !== NetworkStatus.CONNECTED 
-              ? "Please connect to Polygon Amoy network to view your passwords" 
+            {networkStatus !== NetworkStatus.CONNECTED
+              ? "Please connect to Polygon Amoy network to view your passwords"
               : "No passwords stored yet. Add your first password above!"}
           </p>
         ) : (
@@ -360,26 +394,32 @@ function App() {
                 <div className="platform-name">{item.title}</div>
                 <div className="password-value">
                   <span className="password-text">
-                    {visiblePasswords.has(i) ? item.encryptedPassword : '••••••••'}
+                    {visiblePasswords.has(i)
+                      ? item.encryptedPassword
+                      : "••••••••"}
                   </span>
                   <div className="password-actions">
-                    <button 
+                    <button
                       className="icon-btn"
                       onClick={() => togglePasswordVisibility(i)}
-                      title={visiblePasswords.has(i) ? "Hide password" : "Show password"}
+                      title={
+                        visiblePasswords.has(i)
+                          ? "Hide password"
+                          : "Show password"
+                      }
                     >
-                      {visiblePasswords.has(i) ? '👁️' : '👁️‍🗨️'}
+                      {visiblePasswords.has(i) ? "👁️" : "👁️‍🗨️"}
                     </button>
-                    <button 
+                    <button
                       className="icon-btn"
                       onClick={() => {
-                        const el = document.createElement('textarea');
+                        const el = document.createElement("textarea");
                         el.value = item.encryptedPassword;
                         document.body.appendChild(el);
                         el.select();
-                        document.execCommand('copy');
+                        document.execCommand("copy");
                         document.body.removeChild(el);
-                        alert('Password copied to clipboard!');
+                        alert("Password copied to clipboard!");
                       }}
                       title="Copy password"
                     >
@@ -393,8 +433,11 @@ function App() {
         )}
       </div>
 
-      <button 
-        onClick={() => { setUser(null); setAuthState("login"); }}
+      <button
+        onClick={() => {
+          setUser(null);
+          setAuthState("login");
+        }}
         className="logout-btn"
       >
         Logout
