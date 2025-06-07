@@ -11,6 +11,27 @@ import {
   POLYGON_AMOY_NETWORK 
 } from "./networkUtils";
 
+// Helper function to detect if we're in MetaMask browser
+const isMetaMaskBrowser = () => {
+  return window.ethereum?.isMetaMask && navigator.userAgent.includes('Mobile');
+};
+
+// Helper function to detect if we're on mobile
+const isMobile = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
+// Helper function to get MetaMask deep link
+const getMetaMaskDeepLink = () => {
+  const currentUrl = encodeURIComponent(window.location.href);
+  // If iOS, use different format
+  if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+    return `metamask://dapp/${currentUrl}`;
+  }
+  // For Android
+  return `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`;
+};
+
 function App() {
   const [account, setAccount] = useState(null);
   const [contract, setContract] = useState(null);
@@ -22,6 +43,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [visiblePasswords, setVisiblePasswords] = useState(new Set());
   const [networkStatus, setNetworkStatus] = useState(NetworkStatus.NOT_CONNECTED);
+  const [showMetaMaskPrompt, setShowMetaMaskPrompt] = useState(false);
 
   const connectWallet = async () => {
     if (window.ethereum) {
@@ -152,6 +174,39 @@ function App() {
       checkAndUpdateNetwork();
     }
   }, [account]);
+
+  useEffect(() => {
+    // Check if we're on mobile but not in MetaMask browser
+    if (isMobile() && !isMetaMaskBrowser()) {
+      setShowMetaMaskPrompt(true);
+    }
+  }, []);
+
+  // If we should show MetaMask prompt, show it before anything else
+  if (showMetaMaskPrompt) {
+    return (
+      <div className="container metamask-prompt">
+        <div className="metamask-prompt-card">
+          <h2>Open in MetaMask</h2>
+          <p>For the best experience, please open this app in the MetaMask browser.</p>
+          <div className="metamask-prompt-actions">
+            <a 
+              href={getMetaMaskDeepLink()}
+              className="open-metamask-btn"
+            >
+              Open in MetaMask
+            </a>
+            <button 
+              className="continue-anyway-btn"
+              onClick={() => setShowMetaMaskPrompt(false)}
+            >
+              Continue Anyway
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!account) {
     return (

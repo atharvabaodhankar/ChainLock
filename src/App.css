@@ -348,6 +348,92 @@ h1 {
   animation: fadeIn 0.3s ease-out;
 }
 
+/* MetaMask Prompt Styles */
+.metamask-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.metamask-prompt-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  animation: slideUp 0.3s ease;
+  border: 1px solid rgba(100, 108, 255, 0.2);
+}
+
+.metamask-prompt-card h2 {
+  color: #646cff;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.metamask-prompt-card p {
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+.metamask-prompt-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.open-metamask-btn {
+  background: #646cff;
+  color: white;
+  border: none;
+  padding: 1rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: block;
+  text-align: center;
+}
+
+.open-metamask-btn:hover {
+  background: #535bf2;
+  transform: translateY(-2px);
+}
+
+.continue-anyway-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 1rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.continue-anyway-btn:hover {
+  border-color: #646cff;
+  color: #646cff;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .container {
@@ -384,7 +470,8 @@ h1 {
 
 @media (max-width: 480px) {
   .container {
-    padding: 0.5rem;
+    padding: 0.9rem;
+    border-radius: 1rem;
   }
 
   .dashboard-header {
@@ -425,6 +512,12 @@ h1 {
     padding: 2rem 1rem;
     font-size: 0.9rem;
   }
+  #root {
+  padding: 0.5rem;
+}
+.vault-header{
+  text-align: center;
+}
 }
 
 /* Landscape mode adjustments */
