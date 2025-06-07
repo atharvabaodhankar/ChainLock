@@ -52,7 +52,22 @@ function App() {
 
   useEffect(() => {
     connectWallet();
-  }, []);
+
+    // Listen for MetaMask account changes
+    if (window.ethereum) {
+      const handleAccountsChanged = (accounts) => {
+        if (user && accounts[0]?.toLowerCase() !== user.metamask_address?.toLowerCase()) {
+          setUser(null);
+          setAuthState("login");
+        }
+        setAccount(accounts[0]);
+      };
+      window.ethereum.on("accountsChanged", handleAccountsChanged);
+      return () => {
+        window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
+      };
+    }
+  }, [user]);
 
   if (!account) {
     return (
