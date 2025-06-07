@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { supabase } from "./supabaseClient";
 
@@ -6,6 +5,7 @@ const Register = ({ onRegistered, metamaskAddress }) => {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
   const handleRegister = async (e) => {
@@ -14,28 +14,69 @@ const Register = ({ onRegistered, metamaskAddress }) => {
       setMsg("All fields and MetaMask connection required.");
       return;
     }
-    // Sign up with Supabase Auth
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-    if (error) {
-      setMsg("Registration failed: " + error.message);
-      return;
+    setLoading(true);
+    try {
+      // Sign up with Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      if (error) {
+        setMsg("Registration failed: " + error.message);
+        return;
+      }
+      setMsg("Registration successful! Please check your email to confirm.");
+      onRegistered({ email, username, metamaskAddress });
+    } catch (error) {
+      setMsg("An error occurred during registration.");
+    } finally {
+      setLoading(false);
     }
-    setMsg("Registration successful! Please check your email to confirm.");
-    onRegistered({ email, username, metamaskAddress });
   };
 
   return (
-    <form onSubmit={handleRegister}>
-      <h2>Register</h2>
-      <input placeholder="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
-      <input placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} required />
-      <input placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
-      <button type="submit">Register</button>
-      <div>{msg}</div>
-    </form>
+    <div className="auth-container">
+      <h2>Create Account 🚀</h2>
+      <form onSubmit={handleRegister} className="auth-form">
+        <div className="form-group">
+          <input
+            className="input"
+            placeholder="Email"
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <input
+            className="input"
+            placeholder="Choose a username"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <input
+            className="input"
+            placeholder="Password"
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        <button 
+          type="submit" 
+          className="action-btn"
+          disabled={loading}
+        >
+          {loading ? "Creating account..." : "Register"}
+        </button>
+        {msg && <div className={`message ${msg.includes("successful") ? "success" : "error"}`}>{msg}</div>}
+      </form>
+    </div>
   );
 };
 
