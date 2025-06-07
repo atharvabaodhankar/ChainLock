@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { supabase } from "./supabaseClient";
 import { NetworkStatus } from "./networkUtils";
+import { requestTestMatic } from "./faucetService";
 import "./Login.css";
 
 const Login = ({ 
@@ -16,6 +17,19 @@ const Login = ({
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [faucetMsg, setFaucetMsg] = useState("");
+  const handleFirstTimeLogin = async () => {
+    try {
+      setFaucetMsg("🎁 Welcome! Sending you 1 POL (Polygon Amoy Testnet)...");
+      const result = await requestTestMatic(metamaskAddress);
+      setFaucetMsg(`✅ Successfully sent you ${result.amount} POL! 
+        \nTransaction: ${result.txHash}
+        \nBlock: ${result.blockNumber}`);
+    } catch (error) {
+      console.error("Faucet error:", error);
+      setFaucetMsg(`❌ Failed to send POL: ${error.message}`);
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -72,7 +86,11 @@ const Login = ({
           .eq("id", data.user.id)
           .single();
         profile = newProfile;
+
+        // Send test MATIC to new users
+        await handleFirstTimeLogin();
       }
+      
       if (profile.metamask_address.toLowerCase() !== metamaskAddress.toLowerCase()) {
         setMsg("MetaMask address does not match registered address.");
         return;
@@ -196,6 +214,12 @@ const Login = ({
               Register Now
             </button>
           </div>
+
+          {faucetMsg && (
+            <div className={`message ${faucetMsg.includes("✅") ? "success" : "error"}`}>
+              {faucetMsg}
+            </div>
+          )}
 
           {msg && (
             <div className={`message ${msg.includes("successful") ? "success" : "error"}`}>
