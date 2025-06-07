@@ -1,8 +1,15 @@
 import React, { useState } from "react";
 import { supabase } from "./supabaseClient";
+import { NetworkStatus } from "./networkUtils";
 import "./Login.css";
 
-const Login = ({ onLogin, metamaskAddress, onRegisterClick }) => {
+const Login = ({ 
+  onLogin, 
+  metamaskAddress, 
+  onRegisterClick, 
+  networkStatus, 
+  onSwitchNetwork 
+}) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
@@ -16,6 +23,12 @@ const Login = ({ onLogin, metamaskAddress, onRegisterClick }) => {
       setMsg("All fields and MetaMask connection required.");
       return;
     }
+
+    if (networkStatus !== NetworkStatus.CONNECTED) {
+      setMsg("Please connect to Polygon Amoy network to continue.");
+      return;
+    }
+
     setLoading(true);
     try {
       // Sign in with Supabase Auth
@@ -136,17 +149,32 @@ const Login = ({ onLogin, metamaskAddress, onRegisterClick }) => {
             </div>
           )}
 
-          <div className="metamask-status">
-            <span className="icon">🦊</span>
-            <span className={`status ${metamaskAddress ? 'connected' : ''}`}>
-              {metamaskAddress ? 'MetaMask Connected' : 'Please connect MetaMask'}
-            </span>
+          <div className="wallet-status-section">
+            <div className="metamask-status">
+              <span className="icon">🦊</span>
+              <span className={`status ${metamaskAddress ? 'connected' : ''}`}>
+                {metamaskAddress ? 'MetaMask Connected' : 'Please connect MetaMask'}
+              </span>
+            </div>
+
+            {metamaskAddress && networkStatus !== NetworkStatus.CONNECTED && (
+              <div className="network-warning">
+                <p>Please connect to Polygon Amoy network</p>
+                <button
+                  type="button"
+                  className="switch-network-btn"
+                  onClick={onSwitchNetwork}
+                >
+                  Switch Network
+                </button>
+              </div>
+            )}
           </div>
 
           <button 
             type="submit" 
             className="login-button"
-            disabled={loading}
+            disabled={loading || !metamaskAddress || networkStatus !== NetworkStatus.CONNECTED}
           >
             {loading ? (
               <div className="loading-spinner">

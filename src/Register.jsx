@@ -1,8 +1,15 @@
 import React, { useState } from "react";
 import { supabase } from "./supabaseClient";
+import { NetworkStatus } from "./networkUtils";
 import "./Register.css";
 
-const Register = ({ onRegistered, metamaskAddress, onLoginClick }) => {
+const Register = ({ 
+  onRegistered, 
+  metamaskAddress, 
+  onLoginClick,
+  networkStatus,
+  onSwitchNetwork 
+}) => {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -16,6 +23,12 @@ const Register = ({ onRegistered, metamaskAddress, onLoginClick }) => {
       setMsg("All fields and MetaMask connection required.");
       return;
     }
+
+    if (networkStatus !== NetworkStatus.CONNECTED) {
+      setMsg("Please connect to Polygon Amoy network to continue.");
+      return;
+    }
+
     setLoading(true);
     try {
       // Sign up with Supabase Auth
@@ -99,23 +112,38 @@ const Register = ({ onRegistered, metamaskAddress, onLoginClick }) => {
             </div>
           </div>
 
-          <div className="metamask-status">
-            <span className="icon">🦊</span>
-            <span
-              className={`status ${
-                metamaskAddress ? "connected" : ""
-              }`}
-            >
-              {metamaskAddress
-                ? "MetaMask Connected"
-                : "Please connect MetaMask"}
-            </span>
+          <div className="wallet-status-section">
+            <div className="metamask-status">
+              <span className="icon">🦊</span>
+              <span
+                className={`status ${
+                  metamaskAddress ? "connected" : ""
+                }`}
+              >
+                {metamaskAddress
+                  ? "MetaMask Connected"
+                  : "Please connect MetaMask"}
+              </span>
+            </div>
+
+            {metamaskAddress && networkStatus !== NetworkStatus.CONNECTED && (
+              <div className="network-warning">
+                <p>Please connect to Polygon Amoy network</p>
+                <button
+                  type="button"
+                  className="switch-network-btn"
+                  onClick={onSwitchNetwork}
+                >
+                  Switch Network
+                </button>
+              </div>
+            )}
           </div>
 
           <button
             type="submit"
             className="register-button"
-            disabled={loading}
+            disabled={loading || !metamaskAddress || networkStatus !== NetworkStatus.CONNECTED}
           >
             {loading ? (
               <div className="loading-spinner">

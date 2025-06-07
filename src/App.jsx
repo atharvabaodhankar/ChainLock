@@ -4,6 +4,12 @@ import { getVaultContract } from "./contract";
 import Register from "./Register";
 import Login from "./Login";
 import "./App.css";
+import { 
+  NetworkStatus, 
+  isPolygonAmoyNetwork, 
+  switchToPolygonAmoy, 
+  POLYGON_AMOY_NETWORK 
+} from "./networkUtils";
 
 function App() {
   const [account, setAccount] = useState(null);
@@ -15,22 +21,58 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [visiblePasswords, setVisiblePasswords] = useState(new Set());
+  const [networkStatus, setNetworkStatus] = useState(NetworkStatus.NOT_CONNECTED);
 
   const connectWallet = async () => {
     if (window.ethereum) {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const accounts = await provider.send("eth_requestAccounts", []);
-      setAccount(accounts[0]);
-      const signer = await provider.getSigner();
-      const vault = getVaultContract(signer);
-      setContract(vault);
+      try {
+        setLoading(true);
+        // First check if we're on the right network
+        const isCorrectNetwork = await isPolygonAmoyNetwork();
+        if (!isCorrectNetwork) {
+          setNetworkStatus(NetworkStatus.WRONG_NETWORK);
+          const switched = await switchToPolygonAmoy();
+          if (!switched) {
+            alert("Please switch to Polygon Amoy network manually in MetaMask");
+            return;
+          }
+        }
+
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const accounts = await provider.send("eth_requestAccounts", []);
+        setAccount(accounts[0]);
+        const signer = await provider.getSigner();
+        const vault = getVaultContract(signer);
+        setContract(vault);
+        setNetworkStatus(NetworkStatus.CONNECTED);
+      } catch (error) {
+        console.error("Connection error:", error);
+        alert("Failed to connect wallet: " + error.message);
+      } finally {
+        setLoading(false);
+      }
     } else {
       alert("Please install MetaMask!");
     }
   };
 
+  const checkAndUpdateNetwork = async () => {
+    if (!window.ethereum) return;
+    
+    const isCorrectNetwork = await isPolygonAmoyNetwork();
+    setNetworkStatus(isCorrectNetwork ? NetworkStatus.CONNECTED : NetworkStatus.WRONG_NETWORK);
+  };
+
+  // Add password function with network check
   const addPassword = async () => {
     if (!platform || !password) return alert("Both platform and password are required!");
+    
+    const isCorrectNetwork = await isPolygonAmoyNetwork();
+    if (!isCorrectNetwork) {
+      alert("Please switch to Polygon Amoy network to add passwords");
+      return;
+    }
+    
     setLoading(true);
     try {
       const tx = await contract.addPassword(platform, password, { gasLimit: 1000000 });
@@ -48,6 +90,12 @@ function App() {
   };
 
   const fetchPasswords = async () => {
+    const isCorrectNetwork = await isPolygonAmoyNetwork();
+    if (!isCorrectNetwork) {
+      setVaultData([]);
+      return;
+    }
+
     setLoading(true);
     try {
       const data = await contract.getPasswords();
@@ -82,28 +130,79 @@ function App() {
         }
         setAccount(accounts[0]);
       };
+
+      const handleChainChanged = () => {
+        // MetaMask recommends reloading the page on chain changes
+        window.location.reload();
+      };
+
       window.ethereum.on("accountsChanged", handleAccountsChanged);
+      window.ethereum.on("chainChanged", handleChainChanged);
+
       return () => {
         window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
+        window.ethereum.removeListener("chainChanged", handleChainChanged);
       };
     }
   }, [user]);
+
+  // Check network status whenever account changes
+  useEffect(() => {
+    if (account) {
+      checkAndUpdateNetwork();
+    }
+  }, [account]);
 
   if (!account) {
     return (
       <div className="container">
         <h1>🔐 ChainLock</h1>
         <p>Secure password storage on the blockchain</p>
-        <button className="connect-btn" onClick={connectWallet}>Connect MetaMask</button>
+        <button className="connect-btn" onClick={connectWallet} disabled={loading}>
+          {loading ? (
+            <div className="loading-spinner">
+              <div className="spinner"></div>
+              <span>Connecting...</span>
+            </div>
+          ) : (
+            'Connect MetaMask'
+          )}
+        </button>
       </div>
     );
   }
+
+  if (networkStatus === NetworkStatus.WRONG_NETWORK) {
+    return (
+      <div className="container">
+        <h1>🔐 ChainLock</h1>
+        <div className="network-warning">
+          <p>Please connect to Polygon Amoy network to continue</p>
+          <div className="network-info">
+            <p>Network Name: {POLYGON_AMOY_NETWORK.chainName}</p>
+            <p>Chain ID: {POLYGON_AMOY_NETWORK.chainId}</p>
+            <p>RPC URL: {POLYGON_AMOY_NETWORK.rpcUrls[0]}</p>
+          </div>
+          <button 
+            className="action-btn" 
+            onClick={switchToPolygonAmoy}
+            disabled={loading}
+          >
+            {loading ? 'Switching Network...' : 'Switch Network'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (authState === "register") {
     return (
       <Register
         metamaskAddress={account}
         onRegistered={() => setAuthState("login")}
         onLoginClick={() => setAuthState("login")}
+        networkStatus={networkStatus}
+        onSwitchNetwork={switchToPolygonAmoy}
       />
     );
   }
@@ -114,16 +213,18 @@ function App() {
         metamaskAddress={account}
         onRegisterClick={() => setAuthState("register")}
         onLogin={async (profile) => {
-            setUser(profile);
-            setAuthState("dashboard");
-            // Fetch passwords after successful login
-            try {
-              const data = await contract.getPasswords();
-              setVaultData(data);
-            } catch (err) {
-              console.error("Failed to fetch initial passwords:", err);
-            }
-          }}
+          setUser(profile);
+          setAuthState("dashboard");
+          // Fetch passwords after successful login
+          try {
+            const data = await contract.getPasswords();
+            setVaultData(data);
+          } catch (err) {
+            console.error("Failed to fetch initial passwords:", err);
+          }
+        }}
+        networkStatus={networkStatus}
+        onSwitchNetwork={switchToPolygonAmoy}
       />
     );
   }
@@ -136,6 +237,22 @@ function App() {
         <div className="user-info">
           <p>Welcome, {user?.username}!</p>
           <small>Connected: {account.slice(0, 6)}...{account.slice(-4)}</small>
+          <div className="network-status">
+            {networkStatus === NetworkStatus.CONNECTED ? (
+              <span className="network-badge connected">Connected to Polygon Amoy</span>
+            ) : (
+              <div className="network-warning">
+                <span className="network-badge wrong-network">Wrong Network</span>
+                <button 
+                  className="switch-network-btn" 
+                  onClick={switchToPolygonAmoy}
+                  disabled={loading}
+                >
+                  Switch to Polygon Amoy
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -156,7 +273,7 @@ function App() {
         />
         <button 
           onClick={addPassword} 
-          disabled={loading} 
+          disabled={loading || networkStatus !== NetworkStatus.CONNECTED} 
           className="action-btn"
         >
           {loading ? "Adding..." : "Add Password"}
@@ -168,7 +285,7 @@ function App() {
           <h2>Your Passwords</h2>
           <button 
             onClick={fetchPasswords} 
-            disabled={loading}
+            disabled={loading || networkStatus !== NetworkStatus.CONNECTED}
             className="refresh-btn"
           >
             {loading ? "Loading..." : "🔄 Refresh"}
@@ -176,7 +293,11 @@ function App() {
         </div>
 
         {vaultData.length === 0 ? (
-          <p className="empty-state">No passwords stored yet. Add your first password above!</p>
+          <p className="empty-state">
+            {networkStatus !== NetworkStatus.CONNECTED 
+              ? "Please connect to Polygon Amoy network to view your passwords" 
+              : "No passwords stored yet. Add your first password above!"}
+          </p>
         ) : (
           <ul className="password-list">
             {vaultData.map((item, i) => (

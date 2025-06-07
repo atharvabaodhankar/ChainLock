@@ -225,6 +225,48 @@
   transform: translateY(-1px);
 }
 
+.wallet-status-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.network-warning {
+  background: rgba(255, 71, 87, 0.15);
+  border: 1px solid rgba(255, 71, 87, 0.2);
+  padding: 1rem;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.network-warning p {
+  color: #ff4757;
+  margin-bottom: 0.8rem;
+}
+
+.switch-network-btn {
+  background: #646cff;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.switch-network-btn:hover {
+  background: #535bf2;
+  transform: translateY(-1px);
+}
+
+.switch-network-btn:disabled {
+  background: #4b4b4b;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* Enhanced Responsive Design */
 @media (max-width: 480px) {
   .login-container {

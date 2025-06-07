@@ -253,6 +253,85 @@ h1 {
   color: rgba(0, 255, 0, 0.8);
 }
 
+/* Network Styles */
+.network-warning {
+  background: rgba(255, 71, 87, 0.15);
+  border: 1px solid rgba(255, 71, 87, 0.2);
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.network-info {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.network-status {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.network-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.network-badge.connected {
+  background: rgba(46, 213, 115, 0.15);
+  color: #2ed573;
+  border: 1px solid rgba(46, 213, 115, 0.2);
+}
+
+.network-badge.wrong-network {
+  background: rgba(255, 71, 87, 0.15);
+  color: #ff4757;
+  border: 1px solid rgba(255, 71, 87, 0.2);
+}
+
+.switch-network-btn {
+  background: #646cff;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.switch-network-btn:hover {
+  background: #535bf2;
+  transform: translateY(-1px);
+}
+
+.switch-network-btn:disabled {
+  background: #4b4b4b;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.wallet-status-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 /* Animations */
 @keyframes fadeIn {
   from {
