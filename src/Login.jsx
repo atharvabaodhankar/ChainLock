@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { supabase } from "./supabaseClient";
 import "./Login.css";
 
-const Login = ({ onLogin, metamaskAddress }) => {
+const Login = ({ onLogin, metamaskAddress, onRegisterClick }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
@@ -157,6 +157,17 @@ const Login = ({ onLogin, metamaskAddress }) => {
               'Login'
             )}
           </button>
+
+          <div className="auth-switch">
+            <p>Don't have an account?</p>
+            <button 
+              type="button"
+              className="switch-button"
+              onClick={onRegisterClick}
+            >
+              Register Now
+            </button>
+          </div>
 
           {msg && (
             <div className={`message ${msg.includes("successful") ? "success" : "error"}`}>

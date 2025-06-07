@@ -207,13 +207,122 @@
   }
 }
 
+.auth-switch {
+  margin-top: 1.5rem;
+  text-align: center;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.auth-switch p {
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.switch-button {
+  background: none;
+  border: none;
+  color: #00FFFF;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+.switch-button:hover {
+  background: rgba(0, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
 /* Responsive adjustments */
 @media (max-width: 480px) {
+  .register-container {
+    padding: 1rem;
+    min-height: 100dvh; /* Use dynamic viewport height for mobile */
+  }
+
   .register-card {
     padding: 1.5rem;
+    width: 90%;
+    max-width: none;
+    margin: 1rem;
+    border-radius: 16px;
   }
 
   .register-header h2 {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
+  }
+
+  .register-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .input-wrapper {
+    margin-bottom: 0.5rem;
+  }
+
+  .input-wrapper input {
+    font-size: 16px; /* Prevents zoom on mobile */
+    padding: 0.7rem 2.8rem;
+  }
+
+  .input-icon {
+    font-size: 1.1rem;
+    left: 0.8rem;
+  }
+
+  .toggle-password {
+    padding: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .register-button {
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 0.95rem;
+  }
+
+  .message {
+    font-size: 0.8rem;
+    padding: 0.8rem;
+  }
+
+  .metamask-status {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+/* Handle smaller screens */
+@media (max-width: 350px) {
+  .register-card {
+    padding: 1rem;
+  }
+
+  .register-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .input-wrapper input {
+    padding: 0.6rem 2.5rem;
+  }
+}
+
+/* Handle landscape mode */
+@media (max-height: 600px) and (orientation: landscape) {
+  .register-container {
+    align-items: flex-start;
+    padding: 1rem;
+  }
+
+  .register-card {
+    margin: 0.5rem;
+  }
+
+  .register-form {
+    gap: 1rem;
   }
 }

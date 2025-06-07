@@ -98,21 +98,22 @@ function App() {
       </div>
     );
   }
-
   if (authState === "register") {
     return (
       <Register
         metamaskAddress={account}
         onRegistered={() => setAuthState("login")}
+        onLoginClick={() => setAuthState("login")}
       />
     );
   }
 
   if (authState === "login") {
     return (
-      <div className="container">
-        <Login
-          metamaskAddress={account}          onLogin={async (profile) => {
+      <Login
+        metamaskAddress={account}
+        onRegisterClick={() => setAuthState("register")}
+        onLogin={async (profile) => {
             setUser(profile);
             setAuthState("dashboard");
             // Fetch passwords after successful login
@@ -123,12 +124,7 @@ function App() {
               console.error("Failed to fetch initial passwords:", err);
             }
           }}
-        />
-        <p>
-          Don't have an account?{" "}
-          <button className="link-btn" onClick={() => setAuthState("register")}>Register</button>
-        </p>
-      </div>
+      />
     );
   }
 

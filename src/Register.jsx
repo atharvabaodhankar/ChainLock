@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { supabase } from "./supabaseClient";
 import "./Register.css";
 
-const Register = ({ onRegistered, metamaskAddress }) => {
+const Register = ({ onRegistered, metamaskAddress, onLoginClick }) => {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -120,12 +120,23 @@ const Register = ({ onRegistered, metamaskAddress }) => {
             {loading ? (
               <div className="loading-spinner">
                 <div className="spinner"></div>
-                <span>Creating Account...</span>
+                <span>Creating account...</span>
               </div>
             ) : (
               "Create Account"
             )}
           </button>
+
+          <div className="auth-switch">
+            <p>Already have an account?</p>
+            <button
+              type="button"
+              className="switch-button"
+              onClick={onLoginClick}
+            >
+              Login Instead
+            </button>
+          </div>
 
           {msg && (
             <div
