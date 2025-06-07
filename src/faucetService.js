@@ -7,7 +7,7 @@ if (!FAUCET_API) {
 
 export const requestTestMatic = async (address) => {
   try {
-    const response = await fetch(`${FAUCET_API}/fund`, {
+    const response = await fetch(`${FAUCET_API}/api/fund`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -30,7 +30,7 @@ export const requestTestMatic = async (address) => {
 
 export const getFaucetStatus = async () => {
   try {
-    const response = await fetch(`${FAUCET_API}/status`);
+    const response = await fetch(`${FAUCET_API}/api/status`);
     const data = await response.json();
     
     if (!response.ok) {
